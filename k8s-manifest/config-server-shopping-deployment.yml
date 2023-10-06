@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: configurationserver-deployment
+  labels:
+    name: configuration-server
+spec:
+  replicas: 1
+  apiVersion: extensions/v1beta1
+  selector:
+    matchLabels:
+      app: configuration-server
+  template:
+    metadata:
+      labels:
+        app: configuration-server
+    spec:
+      containers:
+        - name: microservices-shopping-configuration-server
+          image: kirtishekharpandey/microservices-shopping-configuration-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9928
+          resources:
+          limits:
+            memory: "700m"
+            cpu: "700m"
+      env:
+        - name: SPRING_APPLICATION_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: shopping-configuration-server-application-name-configmap
+              key: SHOPPING_CONFIGURATION_SERVER_APPLICATION_NAME
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config-profile-active-configmap
+              key: SPRING_CONFIG_PROFILE_ACTIVE
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          valueFrom:
+            configMapKeyRef:
+              name: eureka-service-registry-configmap
+              key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: configuration-server-service
+spec:
+  selector:
+    app: configuration-server
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 9928
+      targetPort: 9928

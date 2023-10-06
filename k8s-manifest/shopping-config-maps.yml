@@ -1,0 +1,130 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-server-configmap
+  labels:
+    app: config-import-map
+data:
+  SPRING_CONFIG_IMPORT: "configserver:http://config-server-service:9928/"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eureka-service-registry-configmap
+  labels:
+    app: config-map
+data:
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-service-registry-0.eureka-service-registry:8761/eureka-service-registry"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-configmap
+  labels:
+    app: config-map
+data:
+  HOSTNAME: "mysql-0.mysql"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-initdb-configmap
+  labels:
+    app: config-map
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXIST microservicesdockercontainerkubernetes;
+    USE microservicesdockercontainerkubernetes;
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zipkin-tracing-endpoint-configmap
+  labels:
+    app: config-map
+data:
+  MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin-service:9411/api/v2/spans
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-profile-active-configmap
+  labels:
+    app: config-map
+data:
+  SPRING_PROFILE_ACTIVE: default
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-config-profile-active-configmap
+  labels:
+    app: config-map
+data:
+  SPRING_CONFIG_PROFILE_ACTIVE: git
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shopping-eureka-server-application-name-configmap
+  labels:
+    app: config-map
+data:
+  SHOPPING_EUREKA_SERVER_APPLICATION_NAME: microservices-eureka-server-project
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shopping-configuration-server-application-name-configmap
+  labels:
+    app: config-map
+data:
+  SHOPPING_CONFIGURATION_SERVER_APPLICATION_NAME: microservices-shopping-configuration-server-project
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shopping-products-service-application-name-configmap
+  labels:
+    app: config-map
+data:
+  SHOOPING_PRODUCTS_SERVICE_APPLICATION_NAME: microservices-product-service-project
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shopping-payment-service-application-name-configmap
+  labels:
+    app: config-map
+data:
+  SHOPPING_PAYMENT_SERVICE_APPLICATION_NAME: microservices-payment-service-project
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shopping-order-service-application-name-configmap
+  labels:
+    app: config-map
+data:
+  SHOOPING_ORDER_SERVICE_APPLICATION_NAME: microservices-order-service-project
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shopping-cloud-gateway-api-application-name-configmap
+  labels:
+    app: config-map
+data:
+  SHOPPING_CLOUD_GATEWAY_API_APPLICATION_NAME: microservices-cloud-gateway-api-project

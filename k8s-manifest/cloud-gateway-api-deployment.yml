@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-cloud-gateway-api-deployment
+  labels:
+    name: shopping-cloud-gateway-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shopping-cloud-gateway-api
+  template:
+    metadata:
+      labels:
+        app: shopping-cloud-gateway-api
+    spec:
+      containers:
+        - name: microservices-shopping-cloud-gateway-api
+          image: kirtishekharpandey/microservices-shopping-cloud-gateway-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 6633
+          resources:
+          limits:
+            memory: "700m"
+            cpu: "700m"
+      env:
+        - name: SPRING_APPLICATION_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: shopping-cloud-gateway-api-application-name-configmap
+              key: SHOPPING_CLOUD_GATEWAY_API_APPLICATION_NAME
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: spring-profile-active-configmap
+              key: SPRING_PROFILE_ACTIVE
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          valueFrom:
+            configMapKeyRef:
+              name: eureka-service-registry-configmap
+              key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+        - name: SPRING_CONFIG_IMPORT
+          valueFrom:
+            configMapKeyRef:
+              name: config-import-map
+              key: SPRING_CONFIG_IMPORT
+        - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: zipkin-tracing-endpoint-configmap
+              key: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopping-cloud-gateway-api-service
+spec:
+  selector:
+    app: shopping-cloud-gateway-api-application
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 6633
+      targetPort: 6633

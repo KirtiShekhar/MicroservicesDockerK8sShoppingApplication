@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-service-deployment
+  labels:
+    name: orders-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders-service
+  template:
+    metadata:
+      labels:
+        app: orders-service
+    spec:
+      containers:
+        - name: microservices-shopping-orders-service
+          image: kirtishekharpandey/microservices-shopping-orders-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9922
+          resources:
+          limits:
+            memory: "700m"
+            cpu: "700m"
+      env:
+        - name: SPRING_APPLICATION_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: shopping-order-service-application-name-configmap
+              key: SHOOPING_ORDER_SERVICE_APPLICATION_NAME
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: spring-profile-active-configmap
+              key: SPRING_PROFILE_ACTIVE
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          valueFrom:
+            configMapKeyRef:
+              name: eureka-service-registry-configmap
+              key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+        - name: SPRING_CONFIG_IMPORT
+          valueFrom:
+            configMapKeyRef:
+              name: config-import-map
+              key: SPRING_CONFIG_IMPORT
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-configmap
+              key: HOSTNAME
+        - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: zipkin-tracing-endpoint-configmap
+              key: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-service-service
+spec:
+  selector:
+    app: orders-service-application
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 9922
+      targetPort: 9922

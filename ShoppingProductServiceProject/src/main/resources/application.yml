@@ -1,0 +1,31 @@
+server:
+  port: 9988
+spring:
+  application:
+    name: microservices-product-service-project
+  profiles:
+    active: default
+  config:
+    import: optional:configserver:http://localhost:9928
+    activate:
+      on-profile: default
+  cloud:
+    config:
+      fail-fast: false
+      retry:
+        initial-interval: 1000
+        multiplier: 1.5
+        max-interval: 2000
+        max-attempts: 6
+  datasource:
+    url: jdbc:mysql://mysql_database:3306/microservicesdockercontainerkubernetes
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: Kirti
+    password: Kirti@02021997
+  jpa:
+    hibernate:
+      ddl-auto: update
+management:
+  tracing:
+    sampling:
+      probability: 1.0

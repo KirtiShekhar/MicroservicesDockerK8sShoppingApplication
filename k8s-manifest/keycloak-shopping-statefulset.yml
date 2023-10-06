@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-development-deployment
+  labels:
+    name: keycloak-development
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak-development
+  template:
+    metadata:
+      labels:
+        app: keycloak-development
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:22.0.1
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: https
+              containerPort: 1030
+          resources:
+          limits:
+            memory: "700m"
+            cpu: "700m"
+      readinessProbe:
+        httpGet:
+          path: "/auth/realms/master"
+          port: 8080
+      env:
+        - name: KEYCLOAK_USER
+          value: "admin"
+        - name: KEYCLOAK_PASSWORD
+          value: "admin"
+        - name: PROXY_ADDRESS_FORWARDING
+          value: "true"
+        - name: KEYCLOAK_FRONTEND_URL
+          value: "https://keycloak-development:1030/auth"
+        - name: KEYCLOAK_ADMIN_URL
+          value: "https://keycloak-development:1030/auth/realms/master/admin/"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-development-service
+spec:
+  selector:
+    app: keycloak-development-application
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 3693
+      targetPort: 1030

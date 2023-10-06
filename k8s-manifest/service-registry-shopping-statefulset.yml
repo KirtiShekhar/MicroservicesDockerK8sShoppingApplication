@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: eureka-service-registry
+spec:
+  selector:
+    matchLabels:
+      app: eureka-service-registry
+  serviceName: "eureka"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: eureka-service-registry
+    spec:
+      containers:
+        - name: microservices-shopping-eureka-server
+          image: kirtishekharpandey/microservices-shopping-eureka-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8761
+          resources:
+          limits:
+            memory: "700m"
+            cpu: "700m"
+      env:
+        - name: SPRING_APPLICATION_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: shopping-eureka-server-application-name-configmap
+              key: SHOPPING_EUREKA_SERVER_APPLICATION_NAME
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config-profile-active-configmap
+              key: SPRING_CONFIG_PROFILE_ACTIVE
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-service-registry
+spec:
+  clusterIP: none
+  selector:
+    app: eureka-service-registry
+  ports:
+    - port: 8761
+      name: eureka-service-registry
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-service-registry-lb
+spec:
+  type: NodePort
+  selector:
+    app: eureka-service-registry
+  ports:
+    - port: 90
+      targetPort: 8761

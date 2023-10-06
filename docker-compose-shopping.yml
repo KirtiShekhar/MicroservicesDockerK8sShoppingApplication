@@ -1,0 +1,168 @@
+version: "3.8"
+services:
+  mysql_database:
+    image: mysql:8.0
+    container_name: mysql-database-food-ordering
+    mem_limit: 700m
+    networks:
+      - shopping-network
+    ports:
+      - 3307:3306
+    restart: always
+    environment:
+      MYSQL_DATABASE: microservicesdockercontainerkubernetes
+      MYSQL_USER: Kirti
+      MYSQL_PASSWORD: Kirti@02021997
+      MYSQL_ROOT_PASSWORD: Kirti@02021997
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    mem_limit: 700m
+    networks:
+      - shopping-network
+    ports:
+      - 9411:9411
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    container_name: keycloak
+    command: ["start-dev", "--import-realm"]
+    mem_limit: 700m
+    networks:
+      - shopping-network
+    ports:
+      - 1030:6369
+    restart: always
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+
+  microservices-shopping-eureka-server:
+    image: kirtishekharpandey/microservices-shopping-eureka-server:latest
+    container_name: microservices-shopping-eureka-server
+    mem_limit: 700m
+    networks:
+      - shopping-network
+    ports:
+      - 8761:8761
+    restart: unless-stopped
+    environment:
+      SPRING_APPLICATION_NAME: microservices-eureka-server-project
+      SPRING_PROFILES_ACTIVE: default
+
+  microservices-shopping-configuration-server:
+    image: kirtishekharpandey/microservices-shopping-configuration-server:latest
+    container_name: microservices-shopping-configuration-server
+    mem_limit: 700m
+    ports:
+      - 9928:9928
+    networks:
+      - shopping-network
+    restart: unless-stopped
+    depends_on:
+      - microservices-shopping-eureka-server
+    environment:
+      SPRING_APPLICATION_NAME: microservices-shopping-configuration-server-project
+      SPRING_PROFILES_ACTIVE: git
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://microservices-shopping-eureka-server:8761/eureka
+
+  microservices-shopping-products-service:
+    image: kirtishekharpandey/microservices-shopping-products-service:latest
+    container_name: microservices-shopping-products-service
+    mem_limit: 700m
+    ports:
+      - 9988:9988
+    networks:
+      - shopping-network
+    restart: unless-stopped
+    depends_on:
+      - mysql_database
+      - zipkin
+      - microservices-shopping-configuration-server
+      - microservices-shopping-eureka-server
+    environment:
+      SPRING_APPLICATION_NAME: microservices-product-service-project
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_CONFIG_IMPORT: optional:configserver:http://microservices-shopping-configuration-server:9928/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql_database:3306/microservicesdockercontainerkubernetes?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: Kirti
+      SPRING_DATASOURCE_PASSWORD: Kirti@02021997
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://microservices-shopping-eureka-server:8761/eureka
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+
+  microservices-shopping-payments-service:
+    image: kirtishekharpandey/microservices-shopping-payments-service:latest
+    container_name: microservices-shopping-payments-service
+    mem_limit: 700m
+    ports:
+      - 9944:9944
+    networks:
+      - shopping-network
+    restart: unless-stopped
+    depends_on:
+      - mysql_database
+      - zipkin
+      - microservices-shopping-configuration-server
+      - microservices-shopping-eureka-server
+    environment:
+      SPRING_APPLICATION_NAME: microservices-payment-service-project
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_CONFIG_IMPORT: optional:configserver:http://microservices-shopping-configuration-server:9928/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql_database:3306/microservicesdockercontainerkubernetes?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: Kirti
+      SPRING_DATASOURCE_PASSWORD: Kirti@02021997
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://microservices-shopping-eureka-server:8761/eureka
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+
+  microservices-shopping-orders-service:
+    image: kirtishekharpandey/microservices-shopping-orders-service:latest
+    container_name: microservices-shopping-orders-service
+    mem_limit: 700m
+    ports:
+      - 9922:9922
+    networks:
+      - shopping-network
+    restart: unless-stopped
+    depends_on:
+      - mysql_database
+      - zipkin
+      - microservices-shopping-configuration-server
+      - microservices-shopping-eureka-server
+    environment:
+      SPRING_APPLICATION_NAME: microservices-order-service-project
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_CONFIG_IMPORT: optional:configserver:http://microservices-shopping-configuration-server:9928/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql_database:3306/microservicesdockercontainerkubernetes?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: Kirti
+      SPRING_DATASOURCE_PASSWORD: Kirti@02021997
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://microservices-shopping-eureka-server:8761/eureka
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+
+  microservices-shopping-cloud-gateway-api:
+    image: kirtishekharpandey/microservices-shopping-cloud-gateway-api:latest
+    container_name: microservices-shopping-cloud-gateway-api
+    mem_limit: 700m
+    ports:
+      - 6633:6633
+    networks:
+      - shopping-network
+    restart: unless-stopped
+    depends_on:
+      - zipkin
+      - keycloak
+      - microservices-shopping-configuration-server
+      - microservices-shopping-eureka-server
+      - microservices-shopping-products-service
+      - microservices-shopping-payments-service
+      - microservices-shopping-orders-service
+    environment:
+      SPRING_APPLICATION_NAME: microservices-cloud-gateway-api-project
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_CONFIG_IMPORT: optional:configserver:http://microservices-shopping-configuration-server:9928/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://microservices-shopping-eureka-server:8761/eureka
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+
+networks:
+  shopping-network:
